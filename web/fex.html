@@ -1,0 +1,183 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+
+
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="description" content="Fex"><title>Fex: Forth2LaTeX</title>
+
+<style type="text/css">
+<!--
+body { background-color: #ffffff; font: normal 85% "arial", "helvetica", sans-serif;}
+
+a {color: #0066cc; text-decoration: underline;}
+a:hover {color: #dd0000;}
+
+h1 {margin: 0; margin-bottom: 10px; padding: 10px; color: #ff9933; border: solid 1px #ff9933; border-top: solid 5px #ff9933; background-color: #eeeeee;}
+
+#toplinks {float: right;}
+
+#main {margin-top: 20px; padding: 0; padding-top: 3px; border-top: solid 1px #eeeeee;}
+
+#links {float: left; width: 18%; color: #666666;}
+#links ul {margin: 0; margin-left: 17px; padding: 0;}
+#links li {list-style: circle; margin-top: 2px; margin-bottom: 2px;}
+#links h3 {margin: 0; color: #666666; text-align: center; border-bottom: solid 1px #ff9933;}
+
+#body {margin-left: 20%; padding-left: 10px; border-left: solid 1px #eeeeee;}
+#body h3 {margin: 0; color: #666666; border-bottom: solid 1px #ff9933;}
+#body h4 {color: #666666;}
+
+#crumbs {margin-left: 50px; color: #666666;}
+#outside h1 img {padding-left: 70%; border: 0;}
+
+pre.code {width: 80%; padding: 7px; border: solid 1px #cccccc; background-color: #eeeeee;}
+
+#footer {clear: both; margin-top: 30px; text-align: center; padding: 2px; color: #ff9933; border: solid 1px #ff9933; border-bottom: solid 5px #ff9933; background-color: #eeeeee;}
+#footer h5 {margin: 0; color: #666666;}
+
+.return {float: right;}
+-->
+</style></head><body>
+<div id="outside">
+<h1 id="top"><span style="color: rgb(102, 102, 102); letter-spacing: -2px;">Fex:</span> A Forth to LaTeX converter.
+</h1>
+
+<div id="crumbs">
+<h5><i>A simple Forth sublanguage to write LaTeX.</i></h5><h5>
+</h5></div><!-- End of crumbs -->
+
+<div id="main">
+<div id="links">
+<h3>Navigation</h3>
+<ul>
+<li><a href="#intro">Introduction</a></li>
+<li><a href="#simple-example">A simple example</a></li>
+<li><a href="#other-examples">Other examples</a></li>
+<li><a href="#downloads">Downloads</a></li>
+<li><a href="#installation">Installation</a></li>
+<li><a href="#customisation">Customisation</a></li>
+<li><a href="#contact">Contact</a></li>
+</ul>
+</div><!-- End of links -->
+
+<div id="body">
+<h3 id="intro">Introduction</h3>
+<p>
+Fex is a simple language based on Forth and with a syntax near
+<a href="http://txt2tags.sourceforge.net/">txt2tags</a> to generate LaTeX file and produce
+the associated ps or pdf files.
+Fex is a <a href="http://www.jwdt.com/~paysan/gforth.html">gforth</a> script.
+It comes with an emacs mode.
+</p>
+<div class="return"><a href="#top" title="Return to the top">^ return</a></div>
+
+
+<h3 id="simple-example">A simple example</h3>
+
+<p>
+Here is a simple document example (<a href="simple.fex.html">colored version</a>):
+
+<pre class="code">
+document(  title: This is the document title.
+
+section: A first section
+
+  The text is here. This one is *( in bold face )* and
+  this one is _( underlined. )_
+
+section: A second section
+
+  /( This is the text in the second section. It is in italic. )/
+
+)document
+</pre>
+
+<p>
+<strong>Important note:</strong> Fex is a Forth sublanguage. So each commands like <b>title:</b>,
+<b>*(</b>, <b>)/</b> ... are Forth words. <br>
+<strong><u>They need to be separated by spaces.</u></strong>
+</p>
+
+Save this document as simple.fex. Build the document with a command like this one:
+
+<pre class="code">
+$ fex simple.fex
+</pre>
+
+<p>And the result looks like this: </p>
+
+<p><img src="simple.png"></p>
+
+<div class="return"><a href="#top" title="Return to the top">^ return</a></div>
+
+<h3 id="other-examples">Other examples</h3>
+
+<p>A full example can be found in <a href="example-en.fex.html">English here</a>
+or in <a href="exemple-fr.fex.html">French here</a>.</p>
+
+<p>Fex can be interactive (like Forth). Here are the available commands from the prompt line:</p>
+
+<pre class="code">bye, make-dvi, make-ps, view-ps, pdf, make-pdf, view-pdf,
+save-ps, save-pdf, clean, clean-all, print</pre>
+
+<p>You can type <strong>'help'</strong> or <strong>'usage'</strong> at prompt time to have more actions details.</p>
+
+<div class="return"><a href="#top" title="Return to the top">^ return</a></div>
+
+<h3 id="downloads">Downloads</h3>
+<p>
+Sources: <a href="fex-2.tar.gz">fex-2.tar.gz</a>
+</p>
+
+
+<div class="return"><a href="#top" title="Return to the top">^ return</a></div>
+
+
+<h3 id="installation">Installation</h3>
+
+<p>Extract the tar.gz archive somewhere:<p>
+
+<pre class="code">$ tar xzvf fex-N.tar.gz</pre>
+
+<p>And copy the fex file somewhere in your $PATH. For example, as root:</p>
+
+<pre class="code">cp fex /usr/local/bin</pre>
+
+<p>Or if you want an English version:</p>
+
+<pre class="code">cp fex-en /usr/local/bin/fex</pre>
+
+<p>To build a document you'll need to have <strong>gforth, latex, dvips, gv, xpdf</strong> and <strong>lpr</strong> installed on
+your system.</p>
+
+<div class="return"><a href="#top" title="Return to the top">^ return</a></div>
+
+<h3 id="customisation">Customisation</h3>
+
+<p>Fex is simple to extend. For example, you can change the pdf viewer with a change in the 'pdf' word (one line).</p>
+
+<p>You can also add your own commands to fex. See the section near the end of the file where commands words are defined.
+A new command is auto documented directly in the word command.</p>
+
+<p>Indeed a new command can be added at the begining of the document file.</p>
+
+
+<div class="return"><a href="#top" title="Return to the top">^ return</a></div>
+
+
+
+<h3 id="contact">Contact</h3>
+<p>
+You can reach me by mail at <a href="mailto:hocwp@free.fr">hocwp@free.fr</a>.
+<br><br>
+Have fun!
+</p>
+<div class="return"><a href="#top" title="Return to the top">^ return</a></div>
+
+</div><!-- End of content -->
+</div><!-- End of main -->
+<div id="footer">
+<h5>Design by <a href="http://www.openwebdesign.org/design/1940/fondations/">Solid Foundations</a></h5>
+</div><!-- End of footer -->
+</div><!-- End of outside -->
+</body></html>

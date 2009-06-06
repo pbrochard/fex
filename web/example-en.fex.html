@@ -1,0 +1,190 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<!-- Created by htmlize-1.16 in css mode. -->
+<html>
+  <head>
+    <title>example-en.fex</title>
+    <style type="text/css">
+    <!--
+      body {
+        color: #000000;
+        background-color: #ffffff;
+      }
+      .comment {
+        /* font-lock-comment-face */
+        color: #b22222;
+      }
+      .function-name {
+        /* font-lock-function-name-face */
+        color: #0000ff;
+      }
+      .keyword {
+        /* font-lock-keyword-face */
+        color: #a020f0;
+      }
+      .string {
+        /* font-lock-string-face */
+        color: #bc8f8f;
+      }
+      .warning {
+        /* font-lock-warning-face */
+        color: #ff0000;
+        font-weight: bold;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+    -->
+    </style>
+  </head>
+  <body>
+
+<p>Here is the original file: <a href="example-en.fex">example-en.fex</a></p>
+<p>Here is the result: <a href="example-en.ps">example-en.ps</a>
+or <a href="example-en.pdf">example-en.pdf</a></p>
+
+<hr>
+
+    <pre>
+cr s<span class="string">" *&gt; This part is in Forth. &lt;*"</span> type cr cr
+
+&lt;fex&gt; definitions
+
+: my-command
+    doc<span class="string">" The my-command documentation"</span>
+    10 0 do I . loop ;
+
+: my-second-command
+    doc<span class="string">" The my-second-command documentation"</span>
+    11 1 do .<span class="string">" $ "</span> I . .<span class="string">" ^2 = "</span> I I * . .<span class="string">" $"</span> cr cr loop ;
+
+<span class="warning">document(</span>
+
+<span class="function-name">title: An example of Forth to \LaTeX</span>
+
+<span class="comment">% This is a comment.</span>
+
+<span class="function-name">section: Overview:</span>
+
+Fex is a forth to \LaTeX converter. It uses a simple syntax with the
+ability to use \LaTeX commands or some forth commands.
+
+<span class="function-name">section: Base commands:</span>
+
+  This is a normal text.
+
+  <span class="keyword">_(</span> This is an underlined text. <span class="keyword">)_</span>
+
+  <span class="keyword">*(</span> This is a bold text. <span class="keyword">)*</span>
+
+  <span class="keyword">/(</span> This is an italic text. <span class="keyword">)/</span>
+
+  <span class="keyword">*(</span> <span class="keyword">_(</span> This is a bold and underlined text. <span class="keyword">)_</span> <span class="keyword">)*</span>
+
+ <span class="keyword">left(</span> This text is on the left. <span class="keyword">)left</span>
+
+  <span class="keyword">center(</span> This is a centered text. <span class="keyword">)center</span>
+
+  <span class="keyword">right(</span> This text is on the right. <span class="keyword">)right</span>
+
+  <span class="keyword">frame(</span> This text has a frame on it. <span class="keyword">)frame</span>
+
+  This command put the 'foo' word in the margin.        <span class="keyword">margin: foo</span>
+
+<span class="function-name">section: Numbering:</span>
+
+<span class="keyword">enumerate(</span>
+  <span class="keyword">=&gt;</span> This is the first item.
+  <span class="keyword">=&gt;</span> This is the second item.
+  <span class="keyword">=&gt;</span> This is the third item.
+
+    <span class="keyword">enumerate(</span>
+      <span class="keyword">=&gt;</span> This is the first subitem
+      <span class="keyword">=&gt;</span> This is the second subitem
+      <span class="keyword">=&gt;</span> This is the third subitem
+    <span class="keyword">)enumerate</span>
+
+  <span class="keyword">=&gt;</span> This is the fourth item.
+<span class="keyword">)enumerate</span>
+
+
+<span class="function-name">section: Picture:</span>
+
+  This is a picture: <span class="function-name">image: smiley.eps, scale=0.2</span>
+
+<span class="function-name">section: Tabulars:</span>
+
+<span class="keyword">tabular( 4 )(</span>
+  Col1 | Col2 | Col3 | Col4
+  --
+  Pouf | Paf | Pif | Plop plop
+  --
+  Toto | Azer | Poipoi | Pouf
+<span class="keyword">)tabular</span>
+
+<span class="function-name">section: Boxes:</span>
+
+<span class="keyword">box( 5cm )(</span> This is a box with long lines truncated ...... .......... ..........
+.... ........ ........... <span class="keyword">)box</span>
+<span class="keyword">hspace= 4cm</span>
+<span class="keyword">box( 5cm )(</span> This is a second box with long lines truncated ........ ..... ........
+.... ....... ........ ......... <span class="keyword">)box</span>
+
+
+<span class="function-name">section: Personal commands and \LaTeX commands:</span>
+
+This is a formula: <span class="function-name">$ z^2 = 2.x^3 + 3.y^3 + \sqrt{\frac{x}{y}}$</span>
+
+Commands for simplified input:
+<span class="function-name">$ U_ pouf = Z_ toto \times I_ titi $</span>
+
+
+A predefined header: \\
+
+(<span class="keyword">Name-Header</span>) \\
+
+A question
+
+<span class="keyword">(answer-&gt;visible)</span>
+<span class="keyword">-&gt;answer:</span> toto
+
+Another question
+
+<span class="keyword">-&gt;answer:</span> pouf
+
+Another question
+
+<span class="keyword">(answer-&gt;invisible)</span>
+<span class="keyword">-&gt;answer:</span> paf paf
+
+<span class="keyword">(double-answer)</span>
+
+And a last question
+
+<span class="keyword">-&gt;answer:</span> klm poi
+
+<span class="keyword">margin: 3~points</span>
+
+<span class="function-name">section: Personal commands in Forth:</span>
+
+This command is definied in Forth at the begining of the file: my-command
+
+This one too:
+
+<span class="keyword">center(</span> my-second-command <span class="keyword">)center</span>
+
+Those commands are executed directly from the forth code embeded in the document:
+
+<span class="warning">forth(</span> 5 5 + . cr
+  : test1   .<span class="string">" 2 + 2 = "</span> 2 2 + . cr ;
+  test1
+
+  : test2   6 1 do .<span class="string">" $"</span> I . .<span class="string">" ^2 = "</span> I I * . .<span class="string">" $ ; "</span> loop ;
+  test2
+<span class="warning">)forth</span>
+
+
+
+<span class="warning">)document</span>
+</pre>
+  </body>
+</html>

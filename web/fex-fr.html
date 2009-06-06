@@ -1,0 +1,618 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<!-- Created by htmlize-1.16 in css mode. -->
+<html>
+  <head>
+    <title>fex</title>
+    <style type="text/css">
+    <!--
+      body {
+        color: #000000;
+        background-color: #ffffff;
+      }
+      .comment {
+        /* font-lock-comment-face */
+        color: #b22222;
+      }
+      .constant {
+        /* font-lock-constant-face */
+        color: #5f9ea0;
+      }
+      .function-name {
+        /* font-lock-function-name-face */
+        color: #0000ff;
+      }
+      .keyword {
+        /* font-lock-keyword-face */
+        color: #a020f0;
+      }
+      .string {
+        /* font-lock-string-face */
+        color: #bc8f8f;
+      }
+      .type {
+        /* font-lock-type-face */
+        color: #228b22;
+      }
+      .variable-name {
+        /* font-lock-variable-name-face */
+        color: #b8860b;
+      }
+      a {
+        color: inherit;
+        background-color: inherit;
+        font: inherit;
+        text-decoration: inherit;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+    -->
+    </style>
+  </head>
+  <body>
+    <pre>
+#! /usr/bin/env gforth
+<span class="comment">\ -*- mode: forth -*-
+</span>
+<span class="comment">\ Copyright (c) 2009, Philippe Brochard
+\ All rights reserved.
+\
+\ Redistribution and use in source and binary forms, with or without
+\ modification, are permitted provided that the following conditions are
+\ met:
+\
+\     * Redistributions of source code must retain the above copyright
+\ notice, this list of conditions and the following disclaimer.
+\     * Redistributions in binary form must reproduce the above
+\ copyright notice, this list of conditions and the following disclaimer
+\ in the documentation and/or other materials provided with the
+\ distribution.
+\     * Neither the name of Philippe Brochard nor the names of its
+\ contributors may be used to endorse or promote products derived from
+\ this software without specific prior written permission.
+\
+\ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+\ "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+\ LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+\ A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+\ OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+\ SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+\ LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+\ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+\ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+\ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+\ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+</span>
+
+<span class="comment">\ Usage: fex [fichier.fex]
+\
+\ Note: Vous pouvez rajouter vos propres commandes vers la fin de ce
+\ fichier.
+</span>
+
+
+<span class="keyword">: </span><span class="function-name">print-first-usage
+</span>    <span class="string">." Tapez 'aide' pour la liste des commandes"</span> cr cr <span class="keyword">;</span>
+
+print-first-usage
+
+warnings off
+
+<span class="type">vocabulary </span><span class="variable-name">&lt;fex&gt;
+</span>
+
+<span class="keyword">: </span><span class="function-name">only-fex </span>  only   &lt;fex&gt; also   &lt;fex&gt; definitions
+    get-order 2drop  nip <span class="constant">1 </span>set-order <span class="keyword">;</span>
+
+<span class="keyword">: </span><span class="function-name">fex-and-forth </span>only   forth also   &lt;fex&gt; also   forth definitions <span class="keyword">;</span>
+
+<span class="keyword">: </span><span class="function-name">debug </span>.s cr <span class="keyword">;</span>
+
+<span class="keyword">: </span><span class="function-name">next-word </span>          <span class="comment">( -- addr newline-number  )</span>
+    <span class="constant">0 </span><span class="keyword">begin </span>  <span class="constant">bl </span>word dup count nip      <span class="comment">( addr len)</span>
+        <span class="keyword">if </span>swap exit <span class="keyword">then</span>
+        swap 1+ swap refill
+    <span class="keyword">while </span> drop <span class="keyword">repeat </span>swap <span class="keyword">;</span>
+
+
+<span class="comment">\ ,--------------------.
+\ | String utilities   |
+\ `--------------------'
+</span><span class="keyword">: </span><span class="function-name">append </span><span class="comment">( a1 n2 a2 --)</span>
+    over over &gt;r &gt;r count chars + swap chars move
+    r&gt; r&gt; dup &gt;r c@ + r&gt; c! <span class="keyword">;</span>
+
+<span class="comment">\ Convert a stack number to a string
+</span><span class="keyword">: </span><span class="function-name">N&gt;S </span><span class="comment">( u -- addr u)</span> DUP &gt;R ABS S&gt;D &lt;# #S R&gt; SIGN #&gt; <span class="keyword">;</span>
+
+
+
+<span class="comment">\ ,---------------------.
+\ | AutoDoc utilities   |
+\ `---------------------'
+</span><span class="constant">0 </span>  <span class="type">constant </span><span class="variable-name">(view-documentation)
+</span><span class="constant">1 </span>  <span class="type">constant </span><span class="variable-name">(store-documentation)
+</span><span class="constant">-1 </span> <span class="type">constant </span><span class="variable-name">(no-documentation)
+</span><span class="type">variable </span><span class="variable-name">(documentation-state) </span>  (no-documentation) (documentation-state) !
+
+
+<span class="keyword">: </span><span class="function-name">(treat-doc)
+</span>    (documentation-state) @ <span class="keyword">case</span>
+        (view-documentation) <span class="keyword">of </span>type cr r&gt; drop exit <span class="keyword">endof</span>
+        (store-documentation) <span class="keyword">of </span>r&gt; drop exit <span class="keyword">endof</span>
+        2drop
+    <span class="keyword">endcase</span>
+<span class="keyword">;</span>
+
+<span class="keyword">: </span><span class="function-name">view-documentation </span>  (view-documentation)  (documentation-state) ! <span class="keyword">;</span>
+<span class="keyword">: </span><span class="function-name">store-documentation </span> (store-documentation) (documentation-state) ! <span class="keyword">;</span>
+<span class="keyword">: </span><span class="function-name">no-documentation </span>    (no-documentation)    (documentation-state) ! <span class="keyword">;</span>
+
+<span class="keyword">: </span><span class="function-name">-&gt;documentation </span>   (documentation-state) @    view-documentation <span class="keyword">;</span>
+<span class="keyword">: </span><span class="function-name">documentation-&gt; </span>(documentation-state) ! <span class="keyword">;</span>
+
+
+<span class="keyword">: </span><span class="function-name">documentation
+</span>    -&gt;documentation
+    <span class="constant">bl </span>word find <span class="keyword">if </span>execute <span class="keyword">else </span>drop <span class="keyword">then</span>
+    documentation-&gt; <span class="keyword">;</span>
+
+<span class="keyword">: </span><span class="function-name">doc"
+</span>    <span class="keyword">postpone </span><span class="function-name">s\" </span><span class="keyword">postpone </span><span class="function-name">(treat-doc)
+</span><span class="keyword">; immediate</span>
+
+
+<span class="keyword">: </span><span class="function-name">wordlist-words-documentation </span><span class="comment">( wid -- )</span> <span class="comment">\ gforth specific?
+</span>    <span class="keyword">[ </span>has? ec 0= <span class="keyword">[IF] ] </span>wordlist-id <span class="keyword">[ [THEN] ]</span>
+    <span class="keyword">BEGIN</span>
+        @ dup
+    <span class="keyword">WHILE</span>
+            dup name&gt;string 2dup <span class="constant">2 </span>spaces type <span class="string">."  : "</span> evaluate
+    <span class="keyword">REPEAT</span>
+    drop <span class="keyword">;</span>
+
+<span class="keyword">: </span><span class="function-name">syntaxe
+</span>    get-order only-fex
+    -&gt;documentation
+    context @ wordlist-words-documentation
+    documentation-&gt;
+    set-order <span class="keyword">;</span>
+
+
+
+<span class="comment">\ ,--------------------.
+\ | Begining of code   |
+\ `--------------------'
+</span><span class="keyword">: </span><span class="function-name">find-in-arg? </span><span class="comment">( addr n --)</span>
+    <span class="constant">false </span>-rot
+    argc @ <span class="constant">0 </span><span class="keyword">do </span>I arg 2over compare 0= <span class="keyword">if </span>rot drop <span class="constant">true </span>-rot <span class="keyword">then loop </span>2drop <span class="keyword">;</span>
+
+<span class="keyword">: </span><span class="function-name">usage
+</span>    cr <span class="string">." &lt;----------------------------------------------------------------------------&gt;"</span>
+    cr <span class="string">." &lt; Usage: bye, make-dvi, make-ps, view-ps, make-pdf, view-pdf,                &gt;"</span>
+    cr <span class="string">." &lt;        save-ps, save-pdf, clean, clean-all, print                          &gt;"</span>
+    cr <span class="string">." &lt;----------------------------------------------------------------------------&gt;"</span>
+    cr <span class="keyword">;</span>
+
+
+<span class="keyword">: </span><span class="function-name">help
+</span>    <span class="string">." Command line arguments are:"</span> cr
+    <span class="string">."   -h, --help      This help"</span> cr
+    <span class="string">."   -a, --aide      Cette aide et les mots pr&#233;d&#233;finis"</span> cr
+    <span class="string">."   -f              Output to file"</span> cr
+    <span class="string">."   -t              Output to stdin"</span> cr
+    <span class="string">."   -q              Quit after processing"</span> cr
+    <span class="string">."   -pdf            Make a pdf"</span> cr
+    <span class="string">."   -view-pdf       View the generated pdf"</span> cr
+    <span class="string">."   -save-ps        Save the ps file"</span> cr
+    <span class="string">."   -save-pdf       Save the pdf file"</span> cr
+    <span class="string">."   -clean          Clean the output directory"</span> cr
+    <span class="string">."   -clean-all      Clean the output directory and 'output'.ps/.pdf"</span> cr
+<span class="keyword">;</span>
+
+
+
+<span class="keyword">: </span><span class="function-name">aide
+</span>    help
+    cr <span class="string">." Mots pr&#233;d&#233;finis :"</span> cr
+    syntaxe <span class="keyword">;</span>
+
+
+
+
+<span class="type">variable </span><span class="variable-name">(need-space) </span>    <span class="constant">false </span>(need-space) !
+<span class="keyword">: </span><span class="function-name">+space </span><span class="comment">( --)</span> <span class="constant">true </span>(need-space) ! <span class="keyword">;</span>
+<span class="keyword">: </span><span class="function-name">-space </span><span class="comment">( --)</span> <span class="constant">false </span>(need-space) ! <span class="keyword">;</span>
+
+
+<span class="constant">0 </span><span class="type">value </span><span class="variable-name">fd-out
+</span><span class="type">create </span><span class="variable-name">ps-name$ </span><span class="constant">5000 </span>chars allot
+<span class="type">create </span><span class="variable-name">pdf-name$ </span><span class="constant">5000 </span>chars allot
+<span class="type">create </span><span class="variable-name">cmd$ </span><span class="constant">5000 </span>chars allot
+
+<span class="keyword">: </span><span class="function-name">exec-cmd$ </span>cmd$ count 2dup system type cr <span class="keyword">;</span>
+<span class="comment">\ : exec-cmd$ cmd$ count type ;  \ Fake: just print the command
+</span><span class="keyword">: </span><span class="function-name">i-&gt;cmd$ </span>cmd$ place <span class="keyword">;</span>
+<span class="keyword">: </span><span class="function-name">-&gt;cmd$ </span>cmd$ append <span class="keyword">;</span>
+
+
+<span class="keyword">: </span><span class="function-name">basename </span>argc @ 1- arg <span class="constant">3 </span>- <span class="keyword">;</span>
+<span class="keyword">: </span><span class="function-name">ps-name </span>basename ps-name$ place <span class="string">s" ps"</span> ps-name$ append ps-name$ count <span class="keyword">;</span>
+<span class="keyword">: </span><span class="function-name">pdf-name </span>basename pdf-name$ place <span class="string">s" pdf"</span> pdf-name$ append pdf-name$ count <span class="keyword">;</span>
+
+<span class="keyword">: </span><span class="function-name">clean </span><span class="string">s" rm -rf ./output"</span> system <span class="keyword">;</span>
+<span class="keyword">: </span><span class="function-name">create-dir </span><span class="string">s" mkdir ./output"</span> system <span class="keyword">;</span>
+<span class="keyword">: </span><span class="function-name">open-file </span> <span class="string">s" ./output/output.tex"</span> <span class="constant">w/o </span>create-file throw <span class="keyword">to </span><span class="variable-name">fd-out </span><span class="keyword">;</span>
+<span class="keyword">: </span><span class="function-name">close-file </span>fd-out close-file throw <span class="keyword">;</span>
+
+<span class="keyword">: </span><span class="function-name">make-dvi
+</span>    <span class="string">s" cp ./*.eps output/"</span> system
+    <span class="string">s" cd ./output &amp;&amp; latex output.tex"</span> system <span class="keyword">;</span>
+<span class="keyword">: </span><span class="function-name">make-ps </span> <span class="string">s" cd ./output &amp;&amp; dvips output.dvi -o -t a4"</span> system <span class="keyword">;</span>
+<span class="keyword">: </span><span class="function-name">view-ps </span> <span class="string">s" gv --nocenter ./output/output.ps"</span> system <span class="keyword">;</span>
+<span class="keyword">: </span><span class="function-name">make-pdf </span><span class="string">s" cd ./output &amp;&amp; ps2pdf output.ps"</span> system <span class="keyword">;</span>
+<span class="keyword">: </span><span class="function-name">view-pdf </span><span class="string">s" xpdf ./output/output.pdf"</span> system <span class="keyword">;</span>
+<span class="keyword">: </span><span class="function-name">print </span><span class="string">s" lpr ./output/output.ps"</span> system <span class="keyword">;</span>
+
+<span class="keyword">: </span><span class="function-name">save-ps
+</span>    <span class="string">s" cp output/output.ps "</span> i-&gt;cmd$ ps-name -&gt;cmd$ exec-cmd$ <span class="keyword">;</span>
+
+<span class="keyword">: </span><span class="function-name">save-pdf
+</span>    <span class="string">s" cp output/output.pdf "</span> i-&gt;cmd$ pdf-name -&gt;cmd$ exec-cmd$ <span class="keyword">;</span>
+
+
+<span class="keyword">: </span><span class="function-name">pdf </span>make-pdf save-pdf view-pdf <span class="keyword">;</span>
+
+<span class="keyword">: </span><span class="function-name">clean-all
+</span>    <span class="string">s" rm -rf ./output "</span> i-&gt;cmd$ ps-name -&gt;cmd$  <span class="string">s"  "</span> -&gt;cmd$ pdf-name -&gt;cmd$ exec-cmd$ <span class="keyword">;</span>
+
+<span class="keyword">: </span><span class="function-name">make-pdf? </span>   <span class="string">s" -pdf"</span> find-in-arg? <span class="keyword">if </span>make-pdf <span class="keyword">then ;</span>
+<span class="keyword">: </span><span class="function-name">view-pdf? </span>   <span class="string">s" -view-pdf"</span> find-in-arg? <span class="keyword">if </span>view-pdf <span class="keyword">then ;</span>
+<span class="keyword">: </span><span class="function-name">save-ps? </span>    <span class="string">s" -save-ps"</span> find-in-arg? <span class="keyword">if </span>save-ps <span class="keyword">then ;</span>
+<span class="keyword">: </span><span class="function-name">save-pdf? </span>   <span class="string">s" -save-pdf"</span> find-in-arg? <span class="keyword">if </span>save-pdf <span class="keyword">then ;</span>
+<span class="keyword">: </span><span class="function-name">clean? </span>      <span class="string">s" -clean"</span> find-in-arg? <span class="keyword">if </span>clean <span class="keyword">then ;</span>
+<span class="keyword">: </span><span class="function-name">clean-all? </span>  <span class="string">s" -clean-all"</span> find-in-arg? <span class="keyword">if </span>clean-all <span class="keyword">then ;</span>
+
+
+<span class="keyword">: </span><span class="function-name">proceed-document </span>make-dvi make-ps view-ps
+    make-pdf? view-pdf? save-ps? save-pdf? clean? clean-all?
+    usage <span class="keyword">;</span>
+
+<span class="type">variable </span><span class="variable-name">(-&gt;file?) </span> <span class="constant">false </span>(-&gt;file?) !
+<span class="type">variable </span><span class="variable-name">(-&gt;file-futur?) </span><span class="constant">false </span>(-&gt;file-futur?) !
+<span class="keyword">: </span><span class="function-name">-&gt;file? </span>(-&gt;file?) @ <span class="keyword">;</span>
+
+<span class="keyword">: </span><span class="function-name">=&gt;stdin </span> <span class="constant">false </span>(-&gt;file-futur?) ! <span class="keyword">;</span>
+<span class="keyword">: </span><span class="function-name">=&gt;file </span>  <span class="constant">true </span> (-&gt;file-futur?) ! <span class="keyword">;</span>
+
+<span class="keyword">: </span><span class="function-name">set-output </span>(-&gt;file-futur?) @ (-&gt;file?) ! <span class="keyword">;</span>
+<span class="keyword">: </span><span class="function-name">reset-output </span><span class="constant">false </span>(-&gt;file?) ! <span class="keyword">;</span>
+
+<span class="keyword">: </span><span class="function-name">(file-open) </span>  clean create-dir open-file <span class="keyword">;</span>
+<span class="keyword">: </span><span class="function-name">(file-close) </span> close-file proceed-document <span class="keyword">;</span>
+
+<span class="keyword">: </span><span class="function-name">(file-type) </span>fd-out write-file throw <span class="keyword">;</span>
+<span class="keyword">: </span><span class="function-name">(file-cr) </span>  <span class="string">s" "</span> fd-out write-line throw <span class="keyword">;</span>
+<span class="keyword">: </span><span class="function-name">(file-.) </span>   N&gt;S fd-out write-line throw <span class="keyword">;</span>
+
+<span class="keyword">: </span><span class="function-name">open </span>   set-output -&gt;file? <span class="keyword">if </span>(file-open) <span class="keyword">then ;</span>
+<span class="keyword">: </span><span class="function-name">close </span>  -&gt;file? <span class="keyword">if </span>(file-close) <span class="keyword">then </span>reset-output <span class="keyword">;</span>
+
+<span class="keyword">: </span><span class="function-name">type </span>   -&gt;file? <span class="keyword">if </span>(file-type) <span class="keyword">else </span>type <span class="keyword">then ;</span>
+<span class="keyword">: </span><span class="function-name">space </span>  <span class="string">s"  "</span> type <span class="keyword">;</span>
+<span class="keyword">: </span><span class="function-name">cr </span>     -&gt;file? <span class="keyword">if </span>(file-cr) <span class="keyword">else </span>cr <span class="keyword">then ;</span>
+<span class="keyword">: </span><span class="function-name">o." </span>     <span class="keyword">postpone </span><span class="function-name">." </span><span class="keyword">; immediate</span>
+<span class="keyword">: </span><span class="function-name">." </span>     <span class="keyword">postpone </span><span class="function-name">s" </span><span class="keyword">postpone </span><span class="function-name">type </span><span class="keyword">; immediate</span>
+<span class="keyword">: </span><span class="function-name">. </span>      -&gt;file? <span class="keyword">if </span>(file-.) <span class="keyword">else </span>. <span class="keyword">then ;</span>
+
+
+<span class="keyword">: </span><span class="function-name">print-space
+</span>    (need-space) @ <span class="keyword">if </span>space <span class="keyword">then ;</span>
+
+<span class="keyword">: </span><span class="function-name">print-word
+</span>    print-space  count type +space <span class="keyword">;</span>
+
+<span class="keyword">: </span><span class="function-name">execute-or-print </span><span class="comment">( addr --)</span>
+    find <span class="keyword">if </span>execute <span class="keyword">else </span>print-word <span class="keyword">then ;</span>
+
+<span class="keyword">: </span><span class="function-name">treat-newlines </span><span class="comment">( addr n -- addr)</span>
+    dup <span class="constant">0 </span>&gt; <span class="keyword">if </span><span class="constant">0 </span><span class="keyword">do </span>cr <span class="keyword">loop </span>-space <span class="keyword">else </span>drop <span class="keyword">then ;</span>
+
+<span class="keyword">: </span><span class="function-name">treat-word </span><span class="comment">( addr n --)</span>
+    treat-newlines   execute-or-print <span class="keyword">;</span>
+
+<span class="keyword">: </span><span class="function-name">treat-EOL
+</span>    <span class="keyword">begin </span><span class="constant">BL </span>word dup count nip  <span class="keyword">while </span>execute-or-print <span class="keyword">repeat </span>drop <span class="keyword">;</span>
+
+
+<span class="keyword">: </span><span class="function-name">generic-space </span><span class="comment">( a n --)</span>  print-space type <span class="constant">bl </span>parse type <span class="string">." }"</span> <span class="keyword">;</span>
+
+<span class="keyword">: </span><span class="function-name">generic-complex </span><span class="comment">( a n --)</span>
+    print-space <span class="string">." \underline{"</span> type <span class="string">." }_{"</span> <span class="constant">bl </span>parse type <span class="string">." }"</span> <span class="keyword">;</span>
+
+<span class="keyword">: </span><span class="function-name">header
+</span>    <span class="string">." \documentclass[a4paper,french,12pt]{article}"</span> cr
+    <span class="string">." %\documentclass[a4paper,twocolumn,french,12pt]{article}"</span> cr
+    <span class="string">." \usepackage[latin1]{inputenc}"</span> cr
+    <span class="string">." %\usepackage{ucs}"</span> cr
+    <span class="string">." %\usepackage[utf8]{inputenc}"</span> cr
+    <span class="string">." \usepackage[T1]{fontenc}"</span> cr
+    <span class="string">." \usepackage[french]{}"</span> cr
+    <span class="string">." \usepackage[french]{babel}"</span> cr
+    <span class="string">." \usepackage[]{indentfirst}"</span> cr
+    <span class="string">." \usepackage[]{graphicx}"</span> cr
+    <span class="string">." \usepackage{epsfig}"</span> cr
+    <span class="string">." \usepackage{psfrag}"</span> cr
+    <span class="string">." \usepackage{multido}"</span> cr
+    <span class="string">." \usepackage{latexsym}             % for   \psfrag{sg}{$\rhd\infty$}"</span> cr
+    <span class="string">." \usepackage[margin=2cm, noheadfoot, portrait]{geometry}"</span> cr
+    <span class="string">." %\addtolength{\columnsep}{0.5cm}"</span> cr
+    <span class="string">." %\setlength{\columnseprule}{1pt}"</span> cr
+    <span class="string">." \pagestyle{empty}"</span> cr cr
+    <span class="string">." \begin{document}"</span> cr cr
+<span class="keyword">;</span>
+
+
+<span class="keyword">: </span><span class="function-name">footer
+</span>    cr cr <span class="string">." \end{document}"</span> cr cr <span class="keyword">;</span>
+
+<span class="keyword">: </span><span class="function-name">(|-&gt;|) </span><span class="string">." |"</span> <span class="keyword">;</span>
+<span class="keyword">: </span><span class="function-name">(|-&gt;&amp;) </span><span class="string">." &amp;"</span> <span class="keyword">;</span>
+<span class="type">defer </span><span class="function-name">(|)
+</span><span class="keyword">' </span><span class="function-name">(|-&gt;|) </span><span class="keyword">is </span><span class="function-name">(|)
+</span>
+<span class="keyword">: </span><span class="function-name">(normal--) </span><span class="string">." --"</span> <span class="keyword">;</span>
+<span class="keyword">: </span><span class="function-name">(tabular--) </span><span class="string">."  \\ \hline "</span> <span class="keyword">;</span>
+<span class="type">defer </span><span class="function-name">(--)
+</span><span class="keyword">' </span><span class="function-name">(normal--) </span><span class="keyword">is </span><span class="function-name">(--)
+</span>
+<span class="keyword">: </span><span class="function-name">normal-)( </span><span class="string">." )("</span> <span class="keyword">;</span>
+<span class="keyword">: </span><span class="function-name">ignore-)( </span><span class="keyword">;</span>
+<span class="type">defer </span><span class="function-name">[)(]
+</span><span class="keyword">' </span><span class="function-name">normal-)( </span><span class="keyword">is </span><span class="function-name">[)(]
+</span>
+<span class="keyword">: </span><span class="function-name">open-document </span>  open header only-fex <span class="keyword">;</span>
+<span class="keyword">: </span><span class="function-name">close-document </span> fex-and-forth footer close <span class="keyword">;</span>
+
+
+<span class="keyword">: </span><span class="function-name">call </span>&gt;r <span class="keyword">;</span>
+<span class="keyword">: </span><span class="function-name">==&gt; </span> 2over compare 0= <span class="keyword">if </span>2drop r&gt; call rdrop exit <span class="keyword">then </span>rdrop <span class="keyword">;</span>
+<span class="keyword">: </span><span class="function-name">or-f </span>    <span class="string">s" -f"</span>     ==&gt; =&gt;file <span class="keyword">;</span>
+<span class="keyword">: </span><span class="function-name">or-t </span>    <span class="string">s" -t"</span>     ==&gt; =&gt;stdin <span class="keyword">;</span>
+<span class="keyword">: </span><span class="function-name">or-h </span>    <span class="string">s" -h"</span>     ==&gt; help bye <span class="keyword">;</span>
+<span class="keyword">: </span><span class="function-name">or-help </span> <span class="string">s" --help"</span> ==&gt; help bye <span class="keyword">;</span>
+<span class="keyword">: </span><span class="function-name">or-aide </span> <span class="string">s" --aide"</span> ==&gt; aide bye <span class="keyword">;</span>
+<span class="keyword">: </span><span class="function-name">or-a </span>    <span class="string">s" -a"</span>     ==&gt; aide bye <span class="keyword">;</span>
+<span class="keyword">: </span><span class="function-name">treat-arg </span><span class="comment">( a n --)</span>
+    or-f or-t or-help or-h or-aide or-a 2drop <span class="keyword">;</span>
+
+<span class="keyword">: </span><span class="function-name">analyse-args </span>   argc @ <span class="constant">0 </span><span class="keyword">do </span>I arg treat-arg <span class="keyword">loop ;</span>
+
+<span class="keyword">: </span><span class="function-name">quit-if-needed </span>   <span class="string">s" -q"</span> find-in-arg? <span class="keyword">if </span>bye <span class="keyword">then ;</span>
+
+
+
+<span class="type">2variable </span><span class="variable-name">simple-taille </span>   <span class="string">s" 1"</span> simple-taille 2!
+<span class="type">2variable </span><span class="variable-name">double-taille </span>   <span class="string">s" 2.5"</span> double-taille 2!
+<span class="type">2variable </span><span class="variable-name">taille-reponse </span>  simple-taille 2@ taille-reponse 2!
+
+<span class="keyword">: </span><span class="function-name">(-&gt;reponse-boite)
+</span>    doc" Affiche une boite reponse"
+    <span class="string">." \fbox{\parbox{15cm}{ \vspace{"</span> taille-reponse 2@ type <span class="string">." cm} ~}} % "</span> <span class="keyword">;</span>
+
+<span class="keyword">: </span><span class="function-name">(-&gt;reponse)
+</span>    doc" Met la reponse dans une boite reponse"
+    <span class="string">." \fbox{\parbox{15cm}{ "</span> treat-EOL <span class="string">." }}"</span> <span class="keyword">;</span>
+
+
+<span class="type">variable </span><span class="variable-name">(done) </span><span class="constant">0 </span>(done) !
+<span class="keyword">: </span><span class="function-name">done </span><span class="constant">-1 </span>(done) ! <span class="keyword">;</span>
+<span class="keyword">: </span><span class="function-name">not-done </span><span class="constant">0 </span>(done) ! <span class="keyword">;</span>
+<span class="keyword">: </span><span class="function-name">done? </span>(done) @ <span class="keyword">;</span>
+
+
+<span class="keyword">: </span><span class="function-name">main-loop
+</span>    <span class="keyword">begin </span>next-word  treat-word  done? <span class="keyword">until ;</span>
+
+
+
+<span class="comment">\ ,--------------------.
+\ | FEX vocabulary     |
+\ `--------------------'
+</span>&lt;fex&gt; definitions
+
+<span class="keyword">: </span><span class="function-name">document(
+</span>    doc" Commence un nouveau document"
+    open-document  not-done  main-loop <span class="keyword">;</span>
+
+<span class="keyword">: </span><span class="function-name">)document
+</span>    doc" Fin du document"
+    done  close-document quit-if-needed <span class="keyword">;</span>
+
+<span class="keyword">: </span><span class="function-name">forth(
+</span>    doc" Execute le code forth"
+    done  fex-and-forth <span class="keyword">;</span>
+
+<span class="keyword">: </span><span class="function-name">)forth
+</span>    doc" Fin de l'execution du code. Revient &#224; fex"
+    not-done  only-fex  main-loop <span class="keyword">;</span>
+
+
+
+
+
+<span class="keyword">: </span><span class="function-name">_(
+</span>    doc" D&#233;but de soulignement"
+    print-space <span class="string">." \underline{"</span> -space <span class="keyword">;</span>
+<span class="keyword">: </span><span class="function-name">)_
+</span>    doc" Fin de soulignement"
+    <span class="string">." }"</span> <span class="keyword">;</span>
+
+<span class="keyword">: </span><span class="function-name">*(
+</span>    doc" D&#233;but de mots en gras"
+    print-space <span class="string">." \textbf{"</span> -space <span class="keyword">;</span>
+<span class="keyword">: </span><span class="function-name">)*
+</span>    doc" Fin de mots en gras"
+    <span class="string">." }"</span> <span class="keyword">;</span>
+
+<span class="keyword">: </span><span class="function-name">/(
+</span>    doc" D&#233;but de mots en italique"
+    print-space <span class="string">." \textit{"</span> -space <span class="keyword">;</span>
+<span class="keyword">: </span><span class="function-name">)/
+</span>    doc" Fin de mots en italique"
+    <span class="string">." }"</span> <span class="keyword">;</span>
+
+<span class="keyword">: </span><span class="function-name">titre:
+</span>    doc" D&#233;fini le reste de la ligne comme un titre"
+    <span class="string">." \begin{center} \fbox{ \Large{\textbf{"</span> -space treat-EOL
+    <span class="string">." }}} \end{center}"</span> -space <span class="keyword">;</span>
+
+<span class="keyword">: </span><span class="function-name">section:
+</span>    doc" D&#233;fini le reste de la ligne comme une nouvelle section"
+    <span class="string">." \subsection*{"</span> -space treat-EOL
+    <span class="string">." }"</span> -space <span class="keyword">;</span>
+
+<span class="keyword">: </span><span class="function-name">image:
+</span>    doc" Insert une image"
+    <span class="string">." \psfig{file="</span> -space treat-EOL
+    <span class="string">." }"</span> -space <span class="keyword">;</span>
+
+<span class="keyword">: </span><span class="function-name">numerote(
+</span>    doc" D&#233;but de num&#233;rotation"
+    <span class="string">." \begin{enumerate}"</span> -space <span class="keyword">;</span>
+<span class="keyword">: </span><span class="function-name">)numerote
+</span>    doc" Fin de num&#233;rotation"
+    <span class="string">." \end{enumerate}"</span> -space <span class="keyword">;</span>
+<span class="keyword">: </span><span class="function-name">=&gt;
+</span>    doc" Nouvel item"
+    <span class="string">."   \item"</span> +space <span class="keyword">;</span>
+
+<span class="keyword">: </span><span class="function-name">(ligne)
+</span>    doc" Ins&#232;re une nouvelle ligne"
+    cr -space <span class="keyword">;</span>
+<span class="keyword">: </span><span class="function-name">(paragraphe)
+</span>    doc" Ins&#232;re un nouveau paragraphe"
+    cr cr -space <span class="keyword">;</span>
+<span class="keyword">: </span><span class="function-name">(page)
+</span>    doc" Ins&#232;re une nouvelle page"
+    cr cr <span class="string">." \newpage"</span> cr cr -space <span class="keyword">;</span>
+
+<span class="keyword">: </span><span class="function-name">tableau(
+</span>    doc" D&#233;but d'un tableau\n    Syntaxe <span class="keyword">: </span>tableau( Ncolonnes )(\n                case1 | case2 | ...\n                --\n                case3 | case4 | ...\n              )tableau"
+    <span class="string">." \begin{tabular}{"</span>
+    <span class="keyword">['] </span><span class="function-name">(|-&gt;&amp;) </span><span class="keyword">is </span><span class="function-name">(|) </span>   <span class="keyword">['] </span><span class="function-name">(tabular--) </span><span class="keyword">is </span><span class="function-name">(--)
+</span>    <span class="keyword">['] </span><span class="function-name">ignore-)( </span><span class="keyword">is </span><span class="function-name">[)(]
+</span>    <span class="constant">bl </span>word number drop <span class="constant">0 </span><span class="keyword">do </span><span class="string">." |c"</span> <span class="keyword">loop </span><span class="string">." |} \hline"</span> -space <span class="keyword">;</span>
+<span class="keyword">: </span><span class="function-name">)tableau
+</span>    doc" Fin d'un tableau"
+    <span class="string">." \\ \hline  \end{tabular}"</span> -space
+    <span class="keyword">['] </span><span class="function-name">(|-&gt;|) </span><span class="keyword">is </span><span class="function-name">(|) </span><span class="keyword">['] </span><span class="function-name">(normal--) </span><span class="keyword">is </span><span class="function-name">(--)
+</span>    <span class="keyword">['] </span><span class="function-name">normal-)( </span><span class="keyword">is </span><span class="function-name">[)(] </span><span class="keyword">;</span>
+<span class="keyword">: </span><span class="function-name">--
+</span>    doc" Nouvelle ligne d'un tableau"
+    (--) <span class="keyword">;</span>
+<span class="keyword">: </span><span class="function-name">|
+</span>    doc" Nouvelle colonne d'un tableau"
+    print-space (|)  <span class="keyword">;</span>
+
+<span class="keyword">: </span><span class="function-name">)(
+</span>    doc" Fin d'une option pour tableau ou boite"
+    [)(] <span class="keyword">;</span>
+
+<span class="keyword">: </span><span class="function-name">hspace=
+</span>    doc" Ajoute un espace horizontal\n    syntaxe <span class="keyword">: </span>hspace= Ncm"
+    <span class="string">s" \hspace{"</span> generic-space <span class="keyword">;</span>
+<span class="keyword">: </span><span class="function-name">vspace=
+</span>    doc" Ajoute un espace vertical\n    syntaxe <span class="keyword">: </span>vspace= Ncm"
+    <span class="string">s" \vspace{"</span> generic-space <span class="keyword">;</span>
+
+<span class="keyword">: </span><span class="function-name">centre(
+</span>    doc" Centre le texte"
+    print-space <span class="string">." \begin{center}"</span> -space <span class="keyword">;</span>
+<span class="keyword">: </span><span class="function-name">)centre
+</span>    doc" Centre le texte"
+    print-space <span class="string">." \end{center}"</span> -space <span class="keyword">;</span>
+
+<span class="keyword">: </span><span class="function-name">gauche(
+</span>    doc" Aligne le texte &#224; gauche"
+    print-space <span class="string">." \begin{flushleft}"</span> -space <span class="keyword">;</span>
+<span class="keyword">: </span><span class="function-name">)gauche
+</span>    doc" Aligne le texte &#224; gauche"
+    print-space <span class="string">." \end{flushleft}"</span> -space <span class="keyword">;</span>
+
+<span class="keyword">: </span><span class="function-name">droite(
+</span>    doc" Aligne le texte &#224; droite"
+    print-space <span class="string">." \begin{flushright}"</span> -space <span class="keyword">;</span>
+<span class="keyword">: </span><span class="function-name">)droite
+</span>    doc" Aligne le text &#224; droite"
+    print-space <span class="string">." \end{flushright}"</span> -space <span class="keyword">;</span>
+
+<span class="keyword">: </span><span class="function-name">encadre(
+</span>    doc" D&#233;but de texte encadr&#233;"
+    print-space <span class="string">." \fbox{"</span> -space <span class="keyword">;</span>
+<span class="keyword">: </span><span class="function-name">)encadre
+</span>    doc" Fin de texte encadr&#233;"
+    <span class="string">." }"</span> -space <span class="keyword">;</span>
+
+<span class="keyword">: </span><span class="function-name">boite(
+</span>    doc" D&#233;but d'une boite\n    Syntaxe <span class="keyword">: </span>boite( Ncm )( bla bla )boite"
+    <span class="keyword">['] </span><span class="function-name">ignore-)( </span><span class="keyword">is </span><span class="function-name">[)(]
+</span>    print-space <span class="string">." \parbox{"</span> <span class="constant">bl </span>word count type <span class="string">." }{"</span> -space <span class="keyword">;</span>
+<span class="keyword">: </span><span class="function-name">)boite
+</span>    doc" Fin d'une boite"
+    <span class="keyword">['] </span><span class="function-name">normal-)( </span><span class="keyword">is </span><span class="function-name">[)(]
+</span>    <span class="string">." }"</span> -space <span class="keyword">;</span>
+
+<span class="keyword">: </span><span class="function-name">marge:
+</span>    doc" Affiche le prochain mot dans la marge &#224; droite"
+    print-space <span class="string">." \marginpar{"</span> <span class="constant">bl </span>word count type <span class="string">." }"</span> -space <span class="keyword">;</span>
+
+<span class="keyword">: </span><span class="function-name">Z_
+</span>    doc" Une impedance" <span class="string">s" Z"</span> generic-complex <span class="keyword">;</span>
+
+<span class="keyword">: </span><span class="function-name">U_
+</span>    doc" Une tension" <span class="string">s" U"</span> generic-complex <span class="keyword">;</span>
+
+<span class="keyword">: </span><span class="function-name">I_
+</span>    doc" Un courant" <span class="string">s" I"</span> generic-complex <span class="keyword">;</span>
+
+<span class="keyword">: </span><span class="function-name">Y_
+</span>    doc" Une admittance"    <span class="string">s" Y"</span> generic-complex <span class="keyword">;</span>
+
+<span class="keyword">: </span><span class="function-name">_Ohm
+</span>    doc" Affiche le signe Omega"  <span class="string">." \Omega"</span> <span class="keyword">;</span>
+
+
+
+<span class="type">defer </span><span class="function-name">-&gt;reponse:
+</span><span class="keyword">: </span><span class="function-name">(reponse-&gt;visible)
+</span>    doc" Les r&#233;ponses deviennent visibles"
+    <span class="keyword">['] </span><span class="function-name">(-&gt;reponse) </span><span class="keyword">is </span><span class="function-name">-&gt;reponse: </span><span class="keyword">;</span>
+<span class="keyword">: </span><span class="function-name">(reponse-&gt;invisible)
+</span>    doc" Les r&#233;ponses deviennent invisibles"
+    <span class="keyword">['] </span><span class="function-name">(-&gt;reponse-boite) </span><span class="keyword">is </span><span class="function-name">-&gt;reponse: </span><span class="keyword">;</span>
+
+<span class="keyword">: </span><span class="function-name">(simple-reponse)
+</span>    doc" Simple taille de reponse"
+    simple-taille 2@ taille-reponse 2! <span class="keyword">;</span>
+
+<span class="keyword">: </span><span class="function-name">(double-reponse)
+</span>    doc" Double la taille de la reponse"
+    double-taille 2@ taille-reponse 2! <span class="keyword">;</span>
+
+
+
+
+<span class="keyword">: </span><span class="function-name">(entete-nom)
+</span>    doc" Affiche une ent&#234;te avec nom, pr&#233;nom et note"
+    <span class="string">." \parbox{3cm}{Pr&#233;nom : \\ Nom :} \hspace{4cm} Classe : \hspace{3cm} \framebox[3.8cm][l]{Note : \hspace{1.5cm} / 20 }"</span> <span class="keyword">;</span>
+
+
+
+
+fex-and-forth    =&gt;file
+
+analyse-args
+</pre>
+  </body>
+</html>

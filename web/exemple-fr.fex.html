@@ -1,0 +1,191 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<!-- Created by htmlize-1.16 in css mode. -->
+<html>
+  <head>
+    <title>exemple-fr.fex</title>
+    <style type="text/css">
+    <!--
+      body {
+        color: #000000;
+        background-color: #ffffff;
+      }
+      .comment {
+        /* font-lock-comment-face */
+        color: #b22222;
+      }
+      .function-name {
+        /* font-lock-function-name-face */
+        color: #0000ff;
+      }
+      .keyword {
+        /* font-lock-keyword-face */
+        color: #a020f0;
+      }
+      .string {
+        /* font-lock-string-face */
+        color: #bc8f8f;
+      }
+      .warning {
+        /* font-lock-warning-face */
+        color: #ff0000;
+        font-weight: bold;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+    -->
+    </style>
+  </head>
+  <body>
+
+
+<p>Le fichier original : <a href="exemple-fr.fex">exemple-fr.fex</a></p>
+<p>Et le résultat : <a href="exemple-fr.ps">exemple-fr.ps</a>
+or <a href="exemple-fr.pdf">exemple-fr.pdf</a></p>
+
+<hr>
+
+    <pre>
+cr s<span class="string">" *&gt; Cette partie est en Forth. &lt;*"</span> type cr cr
+
+&lt;fex&gt; definitions
+
+: ma-commande
+    doc<span class="string">" La documentation de ma commande"</span>
+    10 0 do I . loop ;
+
+: ma-2eme-commande
+    doc<span class="string">" Une deuxi&#232;me commande"</span>
+    11 1 do .<span class="string">" $ "</span> I . .<span class="string">" ^2 = "</span> I I * . .<span class="string">" $"</span> cr cr loop ;
+
+<span class="warning">document(</span>
+
+<span class="function-name">titre: Un exemple de Forth vers \LaTeX</span>
+
+<span class="comment">% Ceci est un commentaire.</span>
+
+<span class="function-name">section: Pr&#233;sentation :</span>
+
+Fex est un convertiseur de Forth vers \LaTeX. Il pr&#233;sente une syntaxe
+plus simple avec la possibilit&#233; d'utiliser des commandes \LaTeX et des
+commandes programm&#233;es en Forth.
+
+<span class="function-name">section: Les commandes de base :</span>
+
+  Ce texte est normal.
+
+  <span class="keyword">_(</span> Ce texte est soulign&#233;. <span class="keyword">)_</span>
+
+  <span class="keyword">*(</span> Ce texte est en gras. <span class="keyword">)*</span>
+
+  <span class="keyword">/(</span> Ce texte est en italique. <span class="keyword">)/</span>
+
+  <span class="keyword">*(</span> <span class="keyword">_(</span> Ce texte est en gras et soulign&#233;. <span class="keyword">)_</span> <span class="keyword">)*</span>
+
+  <span class="keyword">gauche(</span> Ce texte est &#224; gauche. <span class="keyword">)gauche</span>
+
+  <span class="keyword">centre(</span> Ce texte est au centre. <span class="keyword">)centre</span>
+
+  <span class="keyword">droite(</span> Ce texte est &#224; droite. <span class="keyword">)droite</span>
+
+  <span class="keyword">encadre(</span> Ce texte est encadr&#233;. <span class="keyword">)encadre</span>
+
+  Ce texte place le mot 'toto' dans la marge    <span class="keyword">marge: toto</span>
+
+<span class="function-name">section: La num&#233;rotation :</span>
+
+<span class="keyword">numerote(</span>
+  <span class="keyword">=&gt;</span> Ceci est le 1er item.
+  <span class="keyword">=&gt;</span> Ceci est le 2&#232;me item.
+  <span class="keyword">=&gt;</span> Ceci est le 3&#232;me item.
+
+    <span class="keyword">numerote(</span>
+      <span class="keyword">=&gt;</span> Ceci est le 1er sous-item
+      <span class="keyword">=&gt;</span> Ceci est le 2&#232;me sous-item
+      <span class="keyword">=&gt;</span> Ceci est le 3&#232;me sous-item
+    <span class="keyword">)numerote</span>
+
+  <span class="keyword">=&gt;</span> Ceci est le 4&#232;me item.
+<span class="keyword">)numerote</span>
+
+<span class="function-name">section: Les images :</span>
+
+  Ceci est une image : <span class="function-name">image: smiley.eps, scale=0.2</span>
+
+<span class="function-name">section: Les tableaux :</span>
+
+<span class="keyword">tableau( 4 )(</span>
+  Col1 | Col2 | Col3 | Col4
+  --
+  Pouf | Paf | Pif | Plop plop
+  --
+  Toto | Azer | Poipoi | Pouf
+<span class="keyword">)tableau</span>
+
+<span class="function-name">section: Les boites :</span>
+
+<span class="keyword">boite( 5cm )(</span> Ceci est une premi&#232;re boite qui doit couper les lignes
+trop longues <span class="keyword">)boite</span>
+<span class="keyword">hspace= 4cm</span>
+<span class="keyword">boite( 5cm )(</span> Ceci est une deuxi&#232;me boite qui doit couper les lignes
+trop longues <span class="keyword">)boite</span>
+
+
+<span class="function-name">section: Les commandes personnelles et l'utilisation des commandes LaTeX :</span>
+
+Ceci est une formule : <span class="function-name">$ z^2 = 2.x^3 + 3.y^3 + \sqrt{\frac{x}{y}}$</span>
+
+Des commandes pour simplifi&#233; la saisie :
+<span class="function-name">$ U_ pouf = Z_ toto \times I_ titi $</span>
+
+
+Une ent&#234;te pr&#233;d&#233;finie : \\
+
+(<span class="keyword">Entete-Nom</span>) \\
+
+Une question
+
+<span class="keyword">(reponse-&gt;visible)</span>
+<span class="keyword">-&gt;reponse:</span> toto
+
+Une autre question
+
+<span class="keyword">-&gt;reponse:</span> pouf
+
+Un autre question
+
+<span class="keyword">(reponse-&gt;invisible)</span>
+<span class="keyword">-&gt;reponse:</span> paf paf
+
+<span class="keyword">(double-reponse)</span>
+
+Une derni&#232;re question
+
+<span class="keyword">-&gt;reponse:</span> klm poi
+
+<span class="keyword">marge: 3~points</span>
+
+<span class="function-name">section: Les commandes personnelles :</span>
+
+Cette commande est d&#233;finie en Forth au d&#233;but du fichier :  ma-commande
+
+Celle-ci aussi :
+
+<span class="keyword">centre(</span> ma-2eme-commande <span class="keyword">)centre</span>
+
+Ces commandes sont exc&#233;cut&#233;es directement &#224; partir du code en forth inclu dans le document :
+
+<span class="warning">forth(</span> 5 5 + . cr
+  : test1   .<span class="string">" 2 + 2 = "</span> 2 2 + . cr ;
+  test1
+
+  : test2   6 1 do .<span class="string">" $"</span> I . .<span class="string">" ^2 = "</span> I I * . .<span class="string">" $ ; "</span> loop ;
+  test2
+<span class="warning">)forth</span>
+
+
+
+<span class="warning">)document</span>
+</pre>
+  </body>
+</html>
