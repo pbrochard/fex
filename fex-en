@@ -1,0 +1,589 @@
+#! /usr/bin/env gforth
+\ -*- mode: forth -*-
+
+\ Copyright (c) 2009, Philippe Brochard
+\ All rights reserved.
+\
+\ Redistribution and use in source and binary forms, with or without
+\ modification, are permitted provided that the following conditions are
+\ met:
+\
+\     * Redistributions of source code must retain the above copyright
+\ notice, this list of conditions and the following disclaimer.
+\     * Redistributions in binary form must reproduce the above
+\ copyright notice, this list of conditions and the following disclaimer
+\ in the documentation and/or other materials provided with the
+\ distribution.
+\     * Neither the name of Philippe Brochard nor the names of its
+\ contributors may be used to endorse or promote products derived from
+\ this software without specific prior written permission.
+\
+\ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+\ "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+\ LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+\ A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+\ OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+\ SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+\ LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+\ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+\ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+\ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+\ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+\ Usage: fex-en [file.fex]
+\
+\ Customisation: You can add your own commands near the end of this
+\ file.
+\ You can also change the word 'header' to tweak the LaTeX file
+\ header.
+
+: print-first-usage
+    ." Type 'help' for a list of available commands" cr cr ;
+
+print-first-usage
+
+warnings off
+
+vocabulary <fex>
+
+
+: only-fex   only   <fex> also   <fex> definitions
+    get-order 2drop  nip 1 set-order ;
+
+: fex-and-forth only   forth also   <fex> also   forth definitions ;
+
+: debug .s cr ;
+
+: next-word           ( -- addr newline-number  )
+    0 begin   bl word dup count nip      ( addr len)
+	if swap exit then
+	swap 1+ swap refill
+    while  drop repeat swap ;
+
+
+\ ,--------------------.
+\ | String utilities   |
+\ `--------------------'
+: append ( a1 n2 a2 --)
+    over over >r >r count chars + swap chars move
+    r> r> dup >r c@ + r> c! ;
+
+\ Convert a stack number to a string
+: N>S ( u -- addr u) DUP >R ABS S>D <# #S R> SIGN #> ;
+
+
+\ ,-----------------------.
+\ | Arguments utilities   |
+\ `-----------------------'
+256 constant arg-size
+100 constant max-args
+create arguments arg-size max-args * chars allot
+
+variable my-argc   argc @ my-argc !
+
+: my-arg ( n -- addr)
+    arg-size * arguments + count ;
+
+: save-args
+    my-argc @ 0 do I arg  I arg-size * arguments +  place loop ;
+
+: clean-args
+    my-argc @ 2 - 0 ?do shift-args loop ;
+
+
+: verify-args
+    ." *** Verification ***" cr
+    my-argc @ 0 do I my-arg type cr loop ;
+
+
+
+\ ,---------------------.
+\ | AutoDoc utilities   |
+\ `---------------------'
+0   constant (view-documentation)
+1   constant (store-documentation)
+-1  constant (no-documentation)
+variable (documentation-state)   (no-documentation) (documentation-state) !
+
+
+: (treat-doc)
+    (documentation-state) @ case
+	(view-documentation) of type cr r> drop exit endof
+	(store-documentation) of r> drop exit endof
+	2drop
+    endcase
+;
+
+: view-documentation   (view-documentation)  (documentation-state) ! ;
+: store-documentation  (store-documentation) (documentation-state) ! ;
+: no-documentation     (no-documentation)    (documentation-state) ! ;
+
+: ->documentation    (documentation-state) @    view-documentation ;
+: documentation-> (documentation-state) ! ;
+
+
+: documentation
+    ->documentation
+    bl word find if execute else drop then
+    documentation-> ;
+
+: doc"
+    postpone s\" postpone (treat-doc)
+; immediate
+
+
+: wordlist-words-documentation ( wid -- ) \ gforth specific?
+    [ has? ec 0= [IF] ] wordlist-id [ [THEN] ]
+    BEGIN
+	@ dup
+    WHILE
+	    dup name>string 2dup 2 spaces type ."  : " evaluate
+    REPEAT
+    drop ;
+
+: syntaxe
+    get-order only-fex
+    ->documentation
+    context @ wordlist-words-documentation
+    documentation->
+    set-order ;
+
+
+
+\ ,--------------------.
+\ | Begining of code   |
+\ `--------------------'
+: find-in-arg? ( addr n --)
+    false -rot
+    my-argc @ 0 do I my-arg 2over compare 0= if rot drop true -rot then loop 2drop ;
+
+: usage
+    cr ." <---------------------------------------------------------------------------->"
+    cr ." < Usage: bye, make-dvi, make-ps, view-ps, pdf, make-pdf, view-pdf,           >"
+    cr ." <        save-ps, save-pdf, clean, clean-all, print                          >"
+    cr ." <---------------------------------------------------------------------------->"
+    cr ;
+
+
+: cmd-help
+    ." Command line arguments are:" cr
+    ."   -h, --help      This help" cr
+    ."   -fh, --full     Full help" cr
+    ."   -f              Output to file" cr
+    ."   -t              Output to stdin" cr
+    ."   -q, --quit      Quit after processing" cr
+    ."   --pdf           Make a pdf, view it and save it" cr
+    ."   --make-pdf      Make a pdf" cr
+    ."   --view-pdf      View the generated pdf" cr
+    ."   --save-ps       Save the ps file" cr
+    ."   --save-pdf      Save the pdf file" cr
+    ."   --clean         Clean the output directory" cr
+    ."   --clean-all     Clean the output directory and 'output'.ps/.pdf" cr
+;
+
+
+
+: help
+    cmd-help
+    cr ." Defined words:" cr
+    syntaxe ;
+
+
+
+
+variable (need-space)     false (need-space) !
+: +space ( --) true (need-space) ! ;
+: -space ( --) false (need-space) ! ;
+
+
+0 value fd-out
+create ps-name$ 5000 chars allot
+create pdf-name$ 5000 chars allot
+create cmd$ 5000 chars allot
+
+: exec-cmd$ cmd$ count 2dup system type cr ;
+\ : exec-cmd$ cmd$ count type ;  \ Fake: just print the command
+: i->cmd$ cmd$ place ;
+: ->cmd$ cmd$ append ;
+
+
+: basename my-argc @ 1- my-arg 3 - ;
+: ps-name basename ps-name$ place s" ps" ps-name$ append ps-name$ count ;
+: pdf-name basename pdf-name$ place s" pdf" pdf-name$ append pdf-name$ count ;
+
+: clean s" rm -rf ./output" system ;
+: create-dir s" mkdir ./output" system ;
+: open-file  s" ./output/output.tex" w/o create-file throw to fd-out ;
+: close-file fd-out close-file throw ;
+
+: make-dvi
+    s" cp ./*.eps output/" system
+    s" cd ./output && latex output.tex" system ;
+: make-ps  s" cd ./output && dvips output.dvi -o -t a4" system ;
+: view-ps  s" gv --nocenter ./output/output.ps" system ;
+: make-pdf s" cd ./output && ps2pdf output.ps" system ;
+: view-pdf s" xpdf ./output/output.pdf" system ;
+: print s" lpr ./output/output.ps" system ;
+
+: save-ps
+    s" cp output/output.ps " i->cmd$ ps-name ->cmd$ exec-cmd$ ;
+
+: save-pdf
+    s" cp output/output.pdf " i->cmd$ pdf-name ->cmd$ exec-cmd$ ;
+
+
+: pdf make-pdf save-pdf view-pdf ;
+
+: clean-all
+    s" rm -rf ./output " i->cmd$ ps-name ->cmd$  s"  " ->cmd$ pdf-name ->cmd$ exec-cmd$ ;
+
+: pdf?         s" --pdf" find-in-arg? if pdf then ;
+: make-pdf?    s" --make-pdf" find-in-arg? if make-pdf then ;
+: view-pdf?    s" --view-pdf" find-in-arg? if view-pdf then ;
+: save-ps?     s" --save-ps" find-in-arg? if save-ps then ;
+: save-pdf?    s" --save-pdf" find-in-arg? if save-pdf then ;
+: clean?       s" --clean" find-in-arg? if clean then ;
+: clean-all?   s" --clean-all" find-in-arg? if clean-all then ;
+
+
+: proceed-document make-dvi make-ps view-ps
+    pdf?
+    make-pdf? view-pdf? save-ps? save-pdf?
+    clean? clean-all?
+    usage ;
+
+variable (->file?)  false (->file?) !
+variable (->file-futur?) false (->file-futur?) !
+: ->file? (->file?) @ ;
+
+: =>stdin  false (->file-futur?) ! ;
+: =>file   true  (->file-futur?) ! ;
+
+: set-output (->file-futur?) @ (->file?) ! ;
+: reset-output false (->file?) ! ;
+
+: (file-open)   clean create-dir open-file ;
+: (file-close)  close-file proceed-document ;
+
+: (file-type) fd-out write-file throw ;
+: (file-cr)   s" " fd-out write-line throw ;
+: (file-.)    N>S fd-out write-line throw ;
+
+: open    set-output ->file? if (file-open) then ;
+: close   ->file? if (file-close) then reset-output ;
+
+: type    ->file? if (file-type) else type then ;
+: space   s"  " type ;
+: cr      ->file? if (file-cr) else cr then ;
+: o."      postpone ." ; immediate
+: ."      postpone s" postpone type ; immediate
+: .       ->file? if (file-.) else . then ;
+
+
+: print-space
+    (need-space) @ if space then ;
+
+: print-word
+    print-space  count type +space ;
+
+: execute-or-print ( addr --)
+    find if execute else print-word then ;
+
+: treat-newlines ( addr n -- addr)
+    dup 0 > if 0 do cr loop -space else drop then ;
+
+: treat-word ( addr n --)
+    treat-newlines   execute-or-print ;
+
+: treat-EOL
+    begin BL word dup count nip  while execute-or-print repeat drop ;
+
+
+: generic-space ( a n --)  print-space type bl parse type ." }" ;
+
+: generic-complex ( a n --)
+    print-space ." \underline{" type ." }_{" bl parse type ." }" ;
+
+: header
+    ." \documentclass[a4paper,12pt]{article}" cr
+    ." %\documentclass[a4paper,twocolumn,12pt]{article}" cr
+    ." \usepackage[latin1]{inputenc}" cr
+    ." %\usepackage{ucs}" cr
+    ." %\usepackage[utf8]{inputenc}" cr
+    ." \usepackage[T1]{fontenc}" cr
+    ." \usepackage[]{indentfirst}" cr
+    ." \usepackage[]{graphicx}" cr
+    ." \usepackage{epsfig}" cr
+    ." \usepackage{psfrag}" cr
+    ." \usepackage{multido}" cr
+    ." \usepackage{latexsym}             % for   \psfrag{sg}{$\rhd\infty$}" cr
+    ." \usepackage[margin=2cm, noheadfoot, portrait]{geometry}" cr
+    ." %\addtolength{\columnsep}{0.5cm}" cr
+    ." %\setlength{\columnseprule}{1pt}" cr
+    ." \pagestyle{empty}" cr cr
+    ." \begin{document}" cr cr
+;
+
+
+: footer
+    cr cr ." \end{document}" cr cr ;
+
+: (|->|) ." |" ;
+: (|->&) ." &" ;
+defer (|)
+' (|->|) is (|)
+
+: (normal--) ." --" ;
+: (tabular--) ."  \\ \hline " ;
+defer (--)
+' (normal--) is (--)
+
+: normal-)( ." )(" ;
+: ignore-)( ;
+defer [)(]
+' normal-)( is [)(]
+
+: open-document   open header only-fex ;
+: close-document  fex-and-forth footer close ;
+
+
+: call >r ;
+: ==>  2over compare 0= if 2drop r> call rdrop exit then rdrop ;
+: or-f     s" -f"     ==> =>file ;
+: or-t     s" -t"     ==> =>stdin ;
+: or-h     s" -h"     ==> cmd-help bye ;
+: or-help  s" --help" ==> cmd-help bye ;
+: or-fh    s" -fh"    ==> help bye ;
+: or-full  s" --full" ==> help bye ;
+: treat-arg ( a n --)
+    or-f or-t or-help or-h or-fh or-full 2drop ;
+
+: analyse-args    my-argc @ 0 do I my-arg treat-arg loop ;
+
+: quit-if-needed    s" -q" find-in-arg?  s" --quit" find-in-arg? or if bye then ;
+
+
+
+2variable simple-height    s" 1" simple-height 2!
+2variable double-height    s" 2.5" double-height 2!
+2variable height-answer   simple-height 2@ height-answer 2!
+
+: (->answer-box)
+    doc" Display an answer box"
+    ." \fbox{\parbox{15cm}{ \vspace{" height-answer 2@ type ." cm} ~}} % " ;
+
+: (->answer)
+    doc" Put the answer in an anwser box"
+    ." \fbox{\parbox{15cm}{ " treat-EOL ." }}" ;
+
+
+variable (done) 0 (done) !
+: done -1 (done) ! ;
+: not-done 0 (done) ! ;
+: done? (done) @ ;
+
+
+: main-loop
+    begin next-word  treat-word  done? until ;
+
+
+
+\ ,--------------------.
+\ | FEX vocabulary     |
+\ `--------------------'
+<fex> definitions
+
+: document(
+    doc" Begin a new document"
+    open-document  not-done  main-loop ;
+
+: )document
+    doc" End of document"
+    done  close-document quit-if-needed ;
+
+: forth(
+    doc" Execute the forth code"
+    done  fex-and-forth ;
+
+: )forth
+    doc" End of code execution. Return to fex"
+    not-done  only-fex  main-loop ;
+
+
+
+
+
+: _(
+    doc" Begin underline"
+    print-space ." \underline{" -space ;
+: )_
+    doc" End underline"
+    ." }" ;
+
+: *(
+    doc" Begin bold words"
+    print-space ." \textbf{" -space ;
+: )*
+    doc" End bold words"
+    ." }" ;
+
+: /(
+    doc" Begin italic words"
+    print-space ." \textit{" -space ;
+: )/
+    doc" End italic words"
+    ." }" ;
+
+: title:
+    doc" Define the end of the line as a title"
+    ." \begin{center} \fbox{ \Large{\textbf{" -space treat-EOL
+    ." }}} \end{center}" -space ;
+
+: section:
+    doc" Define the end of the line as a new section"
+    ." \subsection*{" -space treat-EOL
+    ." }" -space ;
+
+: image:
+    doc" Insert an image"
+    ." \psfig{file=" -space treat-EOL
+    ." }" -space ;
+
+: enumerate(
+    doc" Begin numbering"
+    ." \begin{enumerate}" -space ;
+: )enumerate
+    doc" End numbering"
+    ." \end{enumerate}" -space ;
+: =>
+    doc" Add a new item"
+    ."   \item" +space ;
+
+: (line)
+    doc" Insert a new line"
+    cr -space ;
+: (paragraph)
+    doc" Insert a new paragraph"
+    cr cr -space ;
+: (page)
+    doc" Insert a new page"
+    cr cr ." \newpage" cr cr -space ;
+
+: tabular(
+    doc" Begin a tabular\n    Syntax : tabular( Ncolumns )(\n                cell1 | cell2 | ...\n                --\n                cell3 | cell4 | ...\n              )tabular"
+    ." \begin{tabular}{"
+    ['] (|->&) is (|)    ['] (tabular--) is (--)
+    ['] ignore-)( is [)(]
+    bl word number drop 0 do ." |c" loop ." |} \hline" -space ;
+: )tabular
+    doc" End of tabular"
+    ." \\ \hline  \end{tabular}" -space
+    ['] (|->|) is (|) ['] (normal--) is (--)
+    ['] normal-)( is [)(] ;
+: --
+    doc" Add a new line in a tabular"
+    (--) ;
+: |
+    doc" Add a new column in a tabular"
+    print-space (|)  ;
+
+: )(
+    doc" Box or tabular option ending"
+    [)(] ;
+
+: hspace=
+    doc" Add a new horizontal space\n    syntax : hspace= Ncm"
+    s" \hspace{" generic-space ;
+: vspace=
+    doc" Add a new vertical space\n    syntax : vspace= Ncm"
+    s" \vspace{" generic-space ;
+
+: center(
+    doc" Begin to center text"
+    print-space ." \begin{center}" -space ;
+: )center
+    doc" End of text centering"
+    print-space ." \end{center}" -space ;
+
+: left(
+    doc" Put the text on the left"
+    print-space ." \begin{flushleft}" -space ;
+: )left
+    doc" End of text on the left"
+    print-space ." \end{flushleft}" -space ;
+
+: right(
+    doc" Put the text on the right"
+    print-space ." \begin{flushright}" -space ;
+: )right
+    doc" End of text on the right
+    print-space ." \end{flushright}" -space ;
+
+: frame(
+    doc" Put the text in a frame"
+    print-space ." \fbox{" -space ;
+: )frame
+    doc" End of text in a frame"
+    ." }" -space ;
+
+: box(
+    doc" Begin a new box\n    Syntax : box( Ncm )( bla bla )box"
+    ['] ignore-)( is [)(]
+    print-space ." \parbox{" bl word count type ." }{" -space ;
+: )box
+    doc" End of box"
+    ['] normal-)( is [)(]
+    ." }" -space ;
+
+: margin:
+    doc" Put the next word in the margin"
+    print-space ." \marginpar{" bl word count type ." }" -space ;
+
+: Z_
+    doc" A complex impedance" s" Z" generic-complex ;
+
+: U_
+    doc" A complex voltage" s" U" generic-complex ;
+
+: I_
+    doc" A complex current" s" I" generic-complex ;
+
+: Y_
+    doc" A complex admittance"    s" Y" generic-complex ;
+
+: _Ohm
+    doc" Display the Omega sign"  ." \Omega" ;
+
+
+
+defer ->answer:
+: (answer->visible)
+    doc" Answer are visibles"
+    ['] (->answer) is ->answer: ;
+: (answer->invisible)
+    doc" Answer are invisibles"
+    ['] (->answer-box) is ->answer: ;
+
+: (simple-answer)
+    doc" Answers have a simple size"
+    simple-height 2@ height-answer 2! ;
+
+: (double-answer)
+    doc" Answer have a double size"
+    double-height 2@ height-answer 2! ;
+
+
+
+
+: (name-header)
+    doc" Display an header with the name, first name and note box"
+    ." \parbox{3cm}{First name: \\ Name:} \hspace{4cm} Class: \hspace{3cm} \framebox[3.8cm][l]{Note : \hspace{1.5cm} / 20 }" ;
+
+
+
+
+fex-and-forth    =>file
+
+save-args
+clean-args
+analyse-args

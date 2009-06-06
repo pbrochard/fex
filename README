@@ -1,0 +1,10 @@
+  -=- Fex: A Forth to LaTeX converter. -=-
+
+A simple Forth sublanguage to write LaTeX.
+
+
+Fex is a simple language based on Forth and with a syntax near
+txt2tags to generate LaTeX file and produce the associated ps or pdf
+files. It comes with an emacs mode.
+
+See web/fex.html for more details.

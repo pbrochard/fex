@@ -1,0 +1,140 @@
+cr s" *> Cette partie est en Forth. <*" type cr cr
+
+<fex> definitions
+
+: ma-commande
+		doc" La documentation de ma commande"
+		10 0 do I . loop ;
+
+: ma-2eme-commande
+		doc" Une deuxième commande"
+		11 1 do ." $ " I . ." ^2 = " I I * . ." $" cr cr loop ;
+
+document(
+
+titre: Un exemple de Forth vers \LaTeX
+
+% Ceci est un commentaire.
+
+section: Présentation :
+
+Fex est un convertiseur de Forth vers \LaTeX. Il présente une syntaxe
+plus simple avec la possibilité d'utiliser des commandes \LaTeX et des
+commandes programmées en Forth.
+
+section: Les commandes de base :
+
+	Ce texte est normal.
+
+	_( Ce texte est souligné. )_
+
+	*( Ce texte est en gras. )*
+
+	/( Ce texte est en italique. )/
+
+	*( _( Ce texte est en gras et souligné. )_ )*
+
+  gauche( Ce texte est à gauche. )gauche
+
+	centre( Ce texte est au centre. )centre
+
+	droite( Ce texte est à droite. )droite
+
+	encadre( Ce texte est encadré. )encadre
+
+	Ce texte place le mot 'toto' dans la marge  	marge: toto
+
+section: La numérotation :
+
+numerote(
+	=> Ceci est le 1er item.
+	=> Ceci est le 2ème item.
+	=> Ceci est le 3ème item.
+
+		numerote(
+			=> Ceci est le 1er sous-item
+			=> Ceci est le 2ème sous-item
+			=> Ceci est le 3ème sous-item
+		)numerote
+
+	=> Ceci est le 4ème item.
+)numerote
+
+section: Les images :
+
+	Ceci est une image : image: smiley.eps, scale=0.2
+
+section: Les tableaux :
+
+tableau( 4 )(
+	Col1 | Col2 | Col3 | Col4
+	--
+	Pouf | Paf | Pif | Plop plop
+	--
+	Toto | Azer | Poipoi | Pouf
+)tableau
+
+section: Les boites :
+
+boite( 5cm )( Ceci est une première boite qui doit couper les lignes
+trop longues )boite
+hspace= 4cm
+boite( 5cm )( Ceci est une deuxième boite qui doit couper les lignes
+trop longues )boite
+
+
+section: Les commandes personnelles et l'utilisation des commandes LaTeX :
+
+Ceci est une formule : $ z^2 = 2.x^3 + 3.y^3 + \sqrt{\frac{x}{y}}$
+
+Des commandes pour simplifié la saisie :
+$ U_ pouf = Z_ toto \times I_ titi $
+
+
+Une entête prédéfinie : \\
+
+(Entete-Nom) \\
+
+Une question
+
+(reponse->visible)
+->reponse: toto
+
+Une autre question
+
+->reponse: pouf
+
+Un autre question
+
+(reponse->invisible)
+->reponse: paf paf
+
+(double-reponse)
+
+Une dernière question
+
+->reponse: klm poi
+
+marge: 3~points
+
+section: Les commandes personnelles :
+
+Cette commande est définie en Forth au début du fichier :  ma-commande
+
+Celle-ci aussi :
+
+centre( ma-2eme-commande )centre
+
+Ces commandes sont excécutées directement à partir du code en forth inclu dans le document :
+
+forth( 5 5 + . cr
+	: test1   ." 2 + 2 = " 2 2 + . cr ;
+  test1
+
+  : test2   6 1 do ." $" I . ." ^2 = " I I * . ." $ ; " loop ;
+  test2
+)forth
+
+
+
+)document

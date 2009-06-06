@@ -1,0 +1,14 @@
+document(
+title: This is the document title.
+
+section: A first section
+
+  The text is here. This one is *( in bold face )* and
+
+	this one is _( underlined. )_
+
+section: A second section
+
+	/( This is the text in the second section. It is in italic. )/
+
+)document

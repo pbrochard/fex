@@ -1,0 +1,16 @@
+#!/bin/sh -x
+
+VERSION=2
+
+rm -rf ./dist
+mkdir -p ./dist/fex
+rm -rf *~ web/*~ output web/output
+cp -R README fex* *.fex web smiley.eps ./dist/fex/
+rm -f ./dist/fex/*.tar.gz
+cd ./dist
+tar czvf fex-$VERSION.tar.gz fex
+cd ..
+cp dist/fex-$VERSION.tar.gz .
+rm -rf ./dist
+
+

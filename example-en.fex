@@ -1,0 +1,140 @@
+cr s" *> This part is in Forth. <*" type cr cr
+
+<fex> definitions
+
+: my-command
+		doc" The my-command documentation"
+		10 0 do I . loop ;
+
+: my-second-command
+		doc" The my-second-command documentation"
+		11 1 do ." $ " I . ." ^2 = " I I * . ." $" cr cr loop ;
+
+document(
+
+title: An example of Forth to \LaTeX
+
+% This is a comment.
+
+section: Overview:
+
+Fex is a forth to \LaTeX converter. It uses a simple syntax with the
+ability to use \LaTeX commands or some forth commands.
+
+section: Base commands:
+
+	This is a normal text.
+
+	_( This is an underlined text. )_
+
+	*( This is a bold text. )*
+
+	/( This is an italic text. )/
+
+	*( _( This is a bold and underlined text. )_ )*
+
+ left( This text is on the left. )left
+
+	center( This is a centered text. )center
+
+	right( This text is on the right. )right
+
+	frame( This text has a frame on it. )frame
+
+	This command put the 'foo' word in the margin.  	  	margin: foo
+
+section: Numbering:
+
+enumerate(
+	=> This is the first item.
+	=> This is the second item.
+	=> This is the third item.
+
+		enumerate(
+			=> This is the first subitem
+			=> This is the second subitem
+			=> This is the third subitem
+		)enumerate
+
+	=> This is the fourth item.
+)enumerate
+
+
+section: Picture:
+
+	This is a picture: image: smiley.eps, scale=0.2
+
+section: Tabulars:
+
+tabular( 4 )(
+	Col1 | Col2 | Col3 | Col4
+	--
+	Pouf | Paf | Pif | Plop plop
+	--
+	Toto | Azer | Poipoi | Pouf
+)tabular
+
+section: Boxes:
+
+box( 5cm )( This is a box with long lines truncated ...... .......... ..........
+.... ........ ........... )box
+hspace= 4cm
+box( 5cm )( This is a second box with long lines truncated ........ ..... ........
+.... ....... ........ ......... )box
+
+
+section: Personal commands and \LaTeX commands:
+
+This is a formula: $ z^2 = 2.x^3 + 3.y^3 + \sqrt{\frac{x}{y}}$
+
+Commands for simplified input:
+$ U_ pouf = Z_ toto \times I_ titi $
+
+
+A predefined header: \\
+
+(Name-Header) \\
+
+A question
+
+(answer->visible)
+->answer: toto
+
+Another question
+
+->answer: pouf
+
+Another question
+
+(answer->invisible)
+->answer: paf paf
+
+(double-answer)
+
+And a last question
+
+->answer: klm poi
+
+margin: 3~points
+
+section: Personal commands in Forth:
+
+This command is definied in Forth at the begining of the file: my-command
+
+This one too:
+
+center( my-second-command )center
+
+Those commands are executed directly from the forth code embeded in the document:
+
+forth( 5 5 + . cr
+	: test1   ." 2 + 2 = " 2 2 + . cr ;
+  test1
+
+  : test2   6 1 do ." $" I . ." ^2 = " I I * . ." $ ; " loop ;
+  test2
+)forth
+
+
+
+)document

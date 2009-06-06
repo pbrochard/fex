@@ -1,0 +1,140 @@
+cr order cr
+
+=>file
+
+: debut cr ." Debut de test.fex" cr cr ;
+debut
+
+<fex> definitions
+
+: test-new-command
+    ." Test de nouvelles commandes :" cr
+    2 2 + . ."  Plop "
+    10 0 do I . ." - " loop ;
+
+document( toto klmm poi  titre: Un essai
+
+test-new-command
+
+$ Z_ toto = 10 ~ _Ohm $
+
+$ Z_ 1 \times  I_ 2 + U_ 10 $
+
+titre: Encore un titre.
+
+TitrE: Un titre bizard
+
+% Un commentaire
+
+encadre( Ceci est encadré )encadre
+
+toto to normal )( plip
+
+vspace= 2cm un mot hspace= 3cm
+boite( 10cm )(  ceci
+
+est dans une jsfdlkfjdslkfjdklsfj fds fds f dsf dsf sd fdsfds fds f dsf dsfds fds fds fds fds
+
+boite
+
+)boite
+
+kjslfkd
+
+titre: Ceci est mon titre.
+
+titre: toto _( souligné klmpooi )_ pouf
+
+numerote(
+  => toto titi  plop  marge: 2~pts
+  => kfmdsl poifds    mArge: 3~pts
+)numerote
+
+image: toto, scale=0.2
+
+image: toto, scale=0.5
+
+fkjsdjlkfds
+
+section: _( Exercice 1 )_ - klm
+
+pouf pouf
+
+1er ligne
+
+
+
+2ème ligne
+
+
+_( toto titi plop kmm poi )_
+*( toto gras )* et _( toto souligné )_ et *( _( /( les deux (trois) )/ )_ )*
+
+*( un texte en gras )* (ligne)
+
+/( Un texte en italic )/  (page)
+
+un long text sdjfdlkf fdskjfhkds
+fdskfjslkdf
+fdsfdsfds
+
+fdsfdsfds
+
+fdsfdsfdsfdsfdsfdsfkjdslkfjdslkf
+
+(paragraphe)
+
+dskljflskdjflkd fsdlkjflksdjfkds fdskljfdslkjflds
+fdskjlfjdslkfjds fdsklfjlksdjfsdlk
+
+cr cr
+
+lmkdfsmlfk hspace= 10cm toto
+
+vspace= 5cm plop toto
+
+pouf pouf
+
+2 2 + . ( un test )
+: test ." plop" ;
+
+generic-space only-fex only-forth
+
+kml | poi | rtiori
+km -- kmlk -- sdfkjl
+
+centre(
+  tableau( 3 )(
+    c 1 1 |  c 1 2 | c 1 3
+    --
+    c 2 1 |  c 2 2 | c 2 3
+    --
+    c 3 1 |  toto  | plop
+  )tableau
+)centre
+
+kml | poi | rtiori
+km -- kmlk -- sdfkjl
+
+
+
+centre( Au centre )centre
+gauche( A gauche )gauche
+droite( A droite )droite
+
+$y^2 = \sqrt{10x^3+5x^2}-10x+5$
+
+
+)document
+
+s" Normal code" type cr
+10 20 30 .s cr
+
+
+
+
+: fin cr ." Fin de test.fex" cr cr ;
+fin
+
+
+\ bye
