@@ -12,6 +12,7 @@
     ("=>stdin" . font-lock-warning-face)
     ("%.*$" . font-lock-comment-face)
     "numerote("     "[=][>]"    ")numerote"
+    "item(" ")item"
     "(ligne)"
     "(page)"
     "(paragraphe)"

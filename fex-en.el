@@ -12,6 +12,7 @@
     ("=>stdin" . font-lock-warning-face)
     ("%.*$" . font-lock-comment-face)
     "enumerate("     "[=][>]"    ")enumerate"
+    "item(" ")item"
     "(line)"
     "(page)"
     "(paragraph)"

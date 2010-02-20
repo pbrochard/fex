@@ -463,6 +463,14 @@ variable (done) 0 (done) !
 : )numerote
     doc" Fin de numérotation"
     ." \end{enumerate}" -space ;
+
+: item(
+    doc" Début des items"
+    ." \begin{itemize}" -space ;
+: )item
+    doc" Fin des items"
+    ." \end{itemize}" -space ;
+
 : =>
     doc" Nouvel item"
     ."   \item" +space ;

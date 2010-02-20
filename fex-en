@@ -455,6 +455,14 @@ variable (done) 0 (done) !
 : )enumerate
     doc" End numbering"
     ." \end{enumerate}" -space ;
+
+: item(
+    doc" Begin itemize"
+    ." \begin{itemize}" -space ;
+: )item
+    doc" End itemize"
+    ." \end{itemize}" -space ;
+
 : =>
     doc" Add a new item"
     ."   \item" +space ;
