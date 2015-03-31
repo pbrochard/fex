@@ -50,9 +50,9 @@ numerote(
   => kfmdsl poifds    mArge: 3~pts
 )numerote
 
-image: toto, scale=0.2
+image: smiley, scale=0.2
 
-image: toto, scale=0.5
+image: smiley, scale=0.5
 
 fkjsdjlkfds
 
